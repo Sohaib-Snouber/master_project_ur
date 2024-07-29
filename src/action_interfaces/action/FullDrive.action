@@ -1,0 +1,32 @@
+# FullDrive.action
+
+# Goal definition
+geometry_msgs/PoseStamped target_pose
+shape_msgs/SolidPrimitive object_primitive
+geometry_msgs/Pose object_pose
+std_msgs/ColorRGBA color
+# the 11 following actions, that the client would request from server 
+bool add_collision_object
+bool delete_collision_object
+bool attach_object
+bool detach_object
+bool move_to
+bool move_linear
+bool allow_collision
+bool reenable_collision
+
+string object_name
+string target_name  # the name of the link or object that will be allowed to colide with object_name
+string task
+string id
+string link # this link is used when attaching/detaching objects to it
+bool constrain
+float64 motion_speed
+---
+# Result definition
+bool success
+string message
+---
+# Feedback definition
+float32 progress
+string status
