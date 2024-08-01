@@ -1,34 +1,3 @@
-# Copyright (c) 2021 PickNik, Inc.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#
-#    * Redistributions of source code must retain the above copyright
-#      notice, this list of conditions and the following disclaimer.
-#
-#    * Redistributions in binary form must reproduce the above copyright
-#      notice, this list of conditions and the following disclaimer in the
-#      documentation and/or other materials provided with the distribution.
-#
-#    * Neither the name of the {copyright_holder} nor the names of its
-#      contributors may be used to endorse or promote products derived from
-#      this software without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
-
-#
-# Author: Denis Stogl
-
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterFile
 from launch_ros.substitutions import FindPackageShare
@@ -96,7 +65,7 @@ def launch_setup(context, *args, **kwargs):
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
-            PathJoinSubstitution([FindPackageShare("my_robot_cell_control"), "urdf", "my_robot_cell_controlled.urdf.xacro"]),           
+            PathJoinSubstitution([FindPackageShare("full_robot_driver"), "urdf", "full_robot_controlled.urdf.xacro"]),
             " ",
             "robot_ip:=",
             robot_ip,
@@ -193,17 +162,17 @@ def launch_setup(context, *args, **kwargs):
     robot_description = {"robot_description": robot_description_content}
 
     initial_joint_controllers = PathJoinSubstitution(
-        [FindPackageShare("my_robot_cell_control"), "config", "ros2_controllers.yaml"]
+        [FindPackageShare("full_robot_driver"), "config", "ros2_controllers.yaml"]
     )
 
     rviz_config_file = PathJoinSubstitution(
-        [FindPackageShare("my_robot_cell_description"), "rviz", "urdf.rviz"]
+        [FindPackageShare("full_robot_description"), "rviz", "urdf.rviz"]
     )
 
     # define update rate
     update_rate_config_file = PathJoinSubstitution(
         [
-            FindPackageShare("my_robot_cell_control"),
+            FindPackageShare("full_robot_driver"),
             "config",
             "ur5e_update_rate.yaml",
         ]
@@ -356,6 +325,13 @@ def launch_setup(context, *args, **kwargs):
         ],
         condition=UnlessCondition(activate_joint_controller),
     )
+    # Add the static gripper publisher node
+    static_gripper_publisher_node = Node(
+        package="full_robot_driver",  # Replace with your package name
+        executable="static_gripper_publisher",
+        name="static_gripper_publisher",
+        output="screen"
+    )
 
     nodes_to_start = [
         control_node,
@@ -369,6 +345,8 @@ def launch_setup(context, *args, **kwargs):
         initial_joint_controller_spawner_stopped,
         initial_joint_controller_spawner_started,
     ] + controller_spawners
+
+    nodes_to_start.append(static_gripper_publisher_node)
 
     return nodes_to_start
 
@@ -426,7 +404,7 @@ def generate_launch_description():
             "kinematics_params_file",
             default_value=PathJoinSubstitution(
                 [
-                    FindPackageShare("my_robot_cell_control"),
+                    FindPackageShare("full_robot_driver"),
                     "config",
                     "my_robot_calibration.yaml",
                 ]
