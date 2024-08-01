@@ -10,14 +10,43 @@
     kinematics_parameters_file
     physical_parameters_file
     visual_parameters_file
+    transmission_hw_interface
+    safety_limits
+    safety_pos_margin
+    safety_k_position
+    use_fake_hardware
+    fake_sensor_commands
+    sim_ignition
+    headless_mode
+    initial_positions
+    use_tool_communication
+    tool_voltage
+    tool_parity
+    tool_baud_rate
+    tool_stop_bits
+    tool_rx_idle_chars
+    tool_tx_idle_chars
+    tool_device_name
+    tool_tcp_port
+    robot_ip
+    script_filename
+    output_recipe_filename
+    input_recipe_filename
+    reverse_ip
+    script_command_port
+    reverse_port
+    script_sender_port
+    trajectory_port
     ">
 
+    <!-- Joint connecting the table to the parent link -->
     <joint name="table_base_joint" type="fixed">
       <xacro:insert_block name="origin" />
       <parent link="${parent}" />
       <child link="table" />
     </joint>
 
+    <!-- Definition of the table link with visual and collision geometry -->
     <link name="table">
       <visual>
         <geometry>
@@ -33,6 +62,7 @@
       </collision>
     </link>
 
+    <!-- Definition of the monitor link with visual and collision geometry -->
     <link name="monitor">
       <visual>
         <geometry>
@@ -45,16 +75,20 @@
         </geometry>
       </collision>
     </link>
+
+    <!-- Joint connecting the monitor to the table -->
     <joint name="base_to_monitor" type="fixed">
       <parent link="table"/>
       <child link="monitor"/>
       <origin xyz="0.2 0.6 0"/>
     </joint>
 
+    <!-- Material definition (not currently used, but defined for potential future use) -->
     <material name="white">
       <color rgba="1 1 1 1"/>
     </material>
 
+    <!-- Definition of the wall link with visual and collision geometry -->
     <link name="wall">
       <visual>
         <geometry>
@@ -67,20 +101,25 @@
         </geometry>
       </collision>
     </link>
+
+    <!-- Joint connecting the wall to the table -->
     <joint name="base_to_wall" type="fixed">
       <parent link="table"/>
       <child link="wall"/>
       <origin xyz="1.25 1.5 0.5"/>
     </joint>
 
+    <!-- Definition of the robot mount link -->
     <link name="robot_mount"/>
+    
+    <!-- Joint connecting the robot mount to the table -->
     <joint name="base_to_robot_mount" type="fixed">
       <parent link="table"/>
       <child link="robot_mount"/>
       <origin xyz="0.845 0.85 0" rpy="0 0 ${pi}" />
     </joint>
 
-    <!--This will create the specific robot-->
+    <!-- Instantiate the robot using the URDF macro -->
     <xacro:ur_robot
       name="${ur_type}"
       tf_prefix="${ur_type}_"
@@ -89,9 +128,36 @@
       kinematics_parameters_file="${kinematics_parameters_file}"
       physical_parameters_file="${physical_parameters_file}"
       visual_parameters_file="${visual_parameters_file}"
+      transmission_hw_interface="${transmission_hw_interface}"
+      safety_limits="${safety_limits}"
+      safety_pos_margin="${safety_pos_margin}"
+      safety_k_position="${safety_k_position}"
+      use_fake_hardware="${use_fake_hardware}"
+      fake_sensor_commands="${fake_sensor_commands}"
+      sim_ignition="${sim_ignition}"
+      headless_mode="${headless_mode}"
+      initial_positions="${initial_positions}"
+      use_tool_communication="${use_tool_communication}"
+      tool_voltage="${tool_voltage}"
+      tool_parity="${tool_parity}"
+      tool_baud_rate="${tool_baud_rate}"
+      tool_stop_bits="${tool_stop_bits}"
+      tool_rx_idle_chars="${tool_rx_idle_chars}"
+      tool_tx_idle_chars="${tool_tx_idle_chars}"
+      tool_device_name="${tool_device_name}"
+      tool_tcp_port="${tool_tcp_port}"
+      robot_ip="${robot_ip}"
+      script_filename="${script_filename}"
+      output_recipe_filename="${output_recipe_filename}"
+      input_recipe_filename="${input_recipe_filename}"
+      reverse_ip="${reverse_ip}"
+      script_command_port="${script_command_port}"
+      reverse_port="${reverse_port}"
+      script_sender_port="${script_sender_port}"
+      trajectory_port="${trajectory_port}"
     >
       <origin xyz="0 0 0" rpy="0 0 0" />
     </xacro:ur_robot>
-  </xacro:macro>
 
+  </xacro:macro>
 </robot>

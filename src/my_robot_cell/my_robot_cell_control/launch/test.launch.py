@@ -73,6 +73,11 @@ def launch_setup(context, *args, **kwargs):
     script_sender_port = LaunchConfiguration("script_sender_port")
     trajectory_port = LaunchConfiguration("trajectory_port")
 
+    my_robot_cell_description_path = PathJoinSubstitution([FindPackageShare("my_robot_cell_description")])
+    ur_description_path = PathJoinSubstitution([FindPackageShare("ur_description")])
+    ur_client_library_path = PathJoinSubstitution([FindPackageShare("ur_client_library")])
+    ur_robot_driver_path = PathJoinSubstitution([FindPackageShare("ur_robot_driver")])
+
     joint_limit_params = PathJoinSubstitution(
         [FindPackageShare(description_package), "config", ur_type, "joint_limits.yaml"]
     )
@@ -97,6 +102,14 @@ def launch_setup(context, *args, **kwargs):
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution([FindPackageShare("my_robot_cell_control"), "urdf", "my_robot_cell_controlled.urdf.xacro"]),
+            " ",
+            "my_robot_cell_description_path:=", my_robot_cell_description_path,
+            " ",
+            "ur_description_path:=", ur_description_path,            
+            " ",
+            "ur_client_library_path:=", ur_client_library_path,            
+            " ",
+            "ur_robot_driver_path:=", ur_robot_driver_path,            
             " ",
             "robot_ip:=",
             robot_ip,
