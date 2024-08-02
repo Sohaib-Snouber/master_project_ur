@@ -13,7 +13,11 @@ class GripperController : public rclcpp::Node
 {
 public:
     GripperController()
-        : Node("gripper_controller"), open_position_(0.7), close_position_(0.0), is_opening_(true)
+        : Node("gripper_controller"), 
+          open_position_(0.7), 
+          close_position_(0.0), 
+          is_opening_(true),
+          elapsed_time_(0.0)
     {
         publisher_ = this->create_publisher<sensor_msgs::msg::JointState>("/joint_states", 10);
         timer_ = this->create_wall_timer(
@@ -25,21 +29,25 @@ public:
 private:
     void update_joint_state()
     {
-        if (is_opening_)
-        {
-            joint_state_msg_.position[0] -= 0.01;
-            if (joint_state_msg_.position[0] <= close_position_)
+        if (elapsed_time_ < 5.0) {
+            if (is_opening_)
             {
-                is_opening_ = false;
+                joint_state_msg_.position[0] -= 0.01;
+                if (joint_state_msg_.position[0] <= close_position_)
+                {
+                    is_opening_ = false;
+                }
             }
-        }
-        else
-        {
-            joint_state_msg_.position[0] += 0.01;
-            if (joint_state_msg_.position[0] >= open_position_)
+            else
             {
-                is_opening_ = true;
+                joint_state_msg_.position[0] += 0.01;
+                if (joint_state_msg_.position[0] >= open_position_)
+                {
+                    is_opening_ = true;
+                }
             }
+
+            elapsed_time_ += 0.1; // Increment elapsed time by 100ms
         }
 
         joint_state_msg_.header.stamp = this->get_clock()->now();
@@ -52,6 +60,7 @@ private:
     double open_position_;
     double close_position_;
     bool is_opening_;
+    double elapsed_time_;  // To track the elapsed time
 };
 
 int main(int argc, char *argv[])

@@ -37,7 +37,6 @@
     reverse_port
     script_sender_port
     trajectory_port
-    tf_prefix
     ">
 
     <!-- This will create the specific robot -->
@@ -84,9 +83,9 @@
 
     <!-- Define the joint connecting the wrist of the UR5e to the base link of the gripper -->
     
-    <joint name="${tf_prefix}tool0_to_gripper_joint" type="fixed">
+    <joint name="${ur_type}_tool0_to_gripper_joint" type="fixed">
       <origin xyz="0 0 0" rpy="0 0 ${pi/2}"/> 
-      <parent link="${tf_prefix}tool0"/>
+      <parent link="${ur_type}_tool0"/>
       <child link="robotiq_arg2f_base_link"/> 
     </joint>
     

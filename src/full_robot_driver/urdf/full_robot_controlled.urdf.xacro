@@ -8,7 +8,7 @@
   <xacro:arg name="name" default="ur"/>
   <!-- possible 'ur_type' values: ur3, ur3e, ur5, ur5e, ur10, ur10e, ur16e, ur20, ur30 -->
   <xacro:arg name="ur_type" default="ur5e"/>
-  <xacro:arg name="tf_prefix" default="ur5e_" />
+  <xacro:arg name="tf_prefix" default="" />
   <xacro:arg name="joint_limits_parameters_file" default="$(find ur_description)/config/$(arg ur_type)/joint_limits.yaml"/>
   <xacro:arg name="kinematics_parameters_file" default="$(find ur_description)/config/$(arg ur_type)/default_kinematics.yaml"/>
   <xacro:arg name="physical_parameters_file" default="$(find ur_description)/config/$(arg ur_type)/physical_parameters.yaml"/>
@@ -54,7 +54,6 @@
 <xacro:full_robot
     parent="world"
     ur_type="$(arg ur_type)"
-    tf_prefix="$(arg tf_prefix)"
     joint_limits_parameters_file="$(arg joint_limits_parameters_file)"
     kinematics_parameters_file="$(arg kinematics_parameters_file)"
     physical_parameters_file="$(arg physical_parameters_file)"
