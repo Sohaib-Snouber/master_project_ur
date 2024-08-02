@@ -5,9 +5,9 @@ moveit_setup_assistant_config:
   srdf:
     relative_path: config/my_robot_cell.srdf
   package_settings:
-    author_name: Felix Exner
-    author_email: exner@fzi.de
-    generated_timestamp: 1713785068
+    author_name: sohaib
+    author_email: sohaibshehabsnouber@gmail.com
+    generated_timestamp: 1722590473
   control_xacro:
     command:
       - position
