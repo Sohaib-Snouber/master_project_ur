@@ -14,8 +14,8 @@ class GripperController : public rclcpp::Node
 public:
     GripperController()
         : Node("gripper_controller"), 
-          open_position_(0.7), 
-          close_position_(0.0), 
+          open_position_(0.0), 
+          close_position_(0.7), 
           is_opening_(true),
           elapsed_time_(0.0)
     {
