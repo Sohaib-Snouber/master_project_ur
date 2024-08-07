@@ -1,23 +1,46 @@
 from moveit_configs_utils import MoveItConfigsBuilder
 from moveit_configs_utils.launches import generate_move_group_launch
 from ament_index_python.packages import get_package_share_directory
+from ur_moveit_config.launch_common import load_yaml
 
 def generate_launch_description():
     # Resolve the paths to the necessary files
-    robot_description_path = get_package_share_directory('my_robot_cell_description') + '/urdf/my_robot_cell.urdf.xacro'
-    srdf_path = get_package_share_directory('my_robot_cell_moveit_config') + '/config/my_robot_cell.srdf'
-    controllers_path = get_package_share_directory('my_robot_cell_moveit_config') + '/config/moveit_controllers.yaml'
+    robot_description_path = get_package_share_directory('full_robot_description') + '/urdf/full_robot.urdf.xacro'
+    srdf_path = get_package_share_directory('full_robot_moveit_config') + '/config/full_robot.srdf'
+    controllers_path = get_package_share_directory('full_robot_moveit_config') + '/config/moveit_controllers.yaml'
+    ompl_planning_yaml_path = get_package_share_directory('full_robot_moveit_config') + '/config/ompl_planning.yaml'
+
+    # Load the OMPL planning configuration from YAML
+    ompl_planning_yaml = load_yaml("full_robot_moveit_config", "config/ompl_planning.yaml")
 
     # Build the MoveIt configuration using the modular builder pattern
     moveit_config = (
-        MoveItConfigsBuilder("my_robot_cell", package_name="my_robot_cell_moveit_config")
+        MoveItConfigsBuilder("full_robot", package_name="full_robot_moveit_config")
         .robot_description(file_path=robot_description_path)
         .robot_description_semantic(file_path=srdf_path)
         .trajectory_execution(file_path=controllers_path)
-        .planning_pipelines(pipelines=["pilz_industrial_motion_planner"])
+        .planning_pipelines(pipelines=["ompl","pilz_industrial_motion_planning"])
         .to_moveit_configs()
     )
 
+    # Define additional OMPL planning configuration with RRTConnect as the planner ID
+    ompl_planning_pipeline_config = {
+        "move_group": {
+            "planning_plugin": "ompl_interface/OMPLPlanner",
+            "request_adapters": "default_planner_request_adapters/AddTimeOptimalParameterization "
+                                "default_planner_request_adapters/FixWorkspaceBounds "
+                                "default_planner_request_adapters/FixStartStateBounds "
+                                "default_planner_request_adapters/FixStartStateCollision "
+                                "default_planner_request_adapters/FixStartStatePathConstraints",
+            "start_state_max_bounds_error": 0.1,
+            "default_planner_id": "RRTConnectkConfigDefault",  # Set the default planner ID to RRTConnect
+        }
+    }
 
-    
+    # Combine the OMPL planning YAML with additional configurations
+    ompl_planning_pipeline_config["move_group"].update(ompl_planning_yaml)
+
+    # Set the combined configuration to the MoveItConfigs object
+    moveit_config.planning_pipelines['ompl'] = ompl_planning_pipeline_config['move_group']
+
     return generate_move_group_launch(moveit_config)

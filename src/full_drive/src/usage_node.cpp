@@ -20,7 +20,7 @@ public:
 
 private:
     std::shared_ptr<ClientActions> client_actions_;
-    const int max_attempts = 500;
+    const int max_attempts = 10;
 
     bool tryAction(std::function<bool()> action, const std::string& action_name) {
         for (int attempt = 0; attempt < max_attempts; ++attempt) {
@@ -137,11 +137,10 @@ private:
         RCLCPP_INFO(this->get_logger(), "moving robot to objects position with shoulder constrain");
         if (!tryAction([&]() { return moveTo(target_mid_poses[1], add_constrain = true, precise_motion = true); }, "moveTo")) return;
         //std::this_thread::sleep_for(std::chrono::seconds(1)); */
-
         
         for (int i = 0; i < 6; ++i) {
             RCLCPP_INFO(this->get_logger(), "moving robot to objects position with shoulder constrain");
-            if (!tryAction([&]() { return moveTo(object_mid_poses[i], add_constrain = true, motion_speed = 0.1); }, "moveTo")) return;
+            if (!tryAction([&]() { return moveTo(object_mid_poses[i], add_constrain = false, motion_speed = 0.1); }, "moveTo")) return;
             //std::this_thread::sleep_for(std::chrono::seconds(1));
 
             RCLCPP_INFO(this->get_logger(), "moving to objects linearly");
@@ -150,11 +149,9 @@ private:
 
             RCLCPP_INFO(this->get_logger(), "allowing collisions with the cylinder object");
             std::string object_name = "cylinder_object" + std::to_string(i+1);
-            if (!tryAction([&]() { return allowCollision("wrist_3_link", object_name); }, "allowCollision(wrist_3_link, " + object_name + ")")) return;
+            if (!tryAction([&]() { return allowCollision("ur5e_tool0", object_name); }, "allowCollision(ur5e_tool0, " + object_name + ")")) return;
             if (!tryAction([&]() { return allowCollision("surface", object_name); }, "allowCollision(surface, " + object_name + ")")) return;
             //std::this_thread::sleep_for(std::chrono::seconds(1));
-
-            if (!tryAction([&]() { return allowCollision("wrist_3_link", "surface"); }, "allowCollision(wrist_3_link, surface)")) return;
 
             RCLCPP_INFO(this->get_logger(), "moving to object linearly");
             if (!tryAction([&]() { return moveLinear(object_poses[i]); }, "moveLinear")) return;
@@ -167,17 +164,13 @@ private:
             if (!tryAction([&]() { return moveLinear(object_mid_poses[i]); }, "moveLinear")) return;
             //std::this_thread::sleep_for(std::chrono::seconds(1));
 
-            if (!tryAction([&]() { return reenableCollision("wrist_3_link", "surface"); }, "reenableCollision(wrist_3_link, surface)")) return;
-
             RCLCPP_INFO(this->get_logger(), "moving robot to targets position with shoulder constrain");
-            if (!tryAction([&]() { return moveTo(target_mid_poses[i], add_constrain = true, motion_speed = 0.2); }, "moveTo")) return;
+            if (!tryAction([&]() { return moveTo(target_mid_poses[i], add_constrain = false, motion_speed = 0.1); }, "moveTo")) return;
             //std::this_thread::sleep_for(std::chrono::seconds(1));
 
             RCLCPP_INFO(this->get_logger(), "moving to targets linearly");
             if (!tryAction([&]() { return moveLinear(target_mid_poses[i]); }, "moveLinear")) return;
             //std::this_thread::sleep_for(std::chrono::seconds(1));
-
-            if (!tryAction([&]() { return allowCollision("wrist_3_link", "surface"); }, "allowCollision(wrist_3_link, surface)")) return;
 
             RCLCPP_INFO(this->get_logger(), "moving to target linearly");
             if (!tryAction([&]() { return moveLinear(target_poses[i]); }, "moveLinear")) return;
@@ -190,7 +183,6 @@ private:
             if (!tryAction([&]() { return moveLinear(target_mid_poses[i]); }, "moveLinear")) return;
             //std::this_thread::sleep_for(std::chrono::seconds(1));
 
-            if (!tryAction([&]() { return reenableCollision("wrist_3_link", "surface"); }, "reenableCollision(wrist_3_link, surface)")) return;
         }
 
         RCLCPP_INFO(this->get_logger(), "All actions completed successfully.");

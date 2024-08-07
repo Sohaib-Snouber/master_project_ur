@@ -152,7 +152,7 @@ private:
 
         // Modify the ACM to allow collision between base_link_inertia and surface
         collision_detection::AllowedCollisionMatrix& acm = planning_scene_->getAllowedCollisionMatrixNonConst();
-        acm.setEntry("base_link_inertia", "surface", true);
+        acm.setEntry("ur5e_base_link_inertia", "surface", true);
 
         // Update the planning scene with the modified ACM
         moveit_msgs::msg::AllowedCollisionMatrix acm_msg;
@@ -410,6 +410,8 @@ private:
         }
         
         move_group_->setMaxVelocityScalingFactor(motion_speed);
+
+        move_group_->setPlannerId("RRTConnectKConfigDefault");
 
         move_group_->setPoseTarget(target_pose);
 
