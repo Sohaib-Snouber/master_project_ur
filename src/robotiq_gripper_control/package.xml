@@ -3,7 +3,7 @@
 <package format="3">
   <name>robotiq_gripper_control</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Robotiq gripper control package for UR-mounted grippers with URCap installed on the pendant</description>
   <maintainer email="sohaibshehabsnouber@gmail.com">sohaib</maintainer>
   <license>TODO: License declaration</license>
 
@@ -11,7 +11,9 @@
 
   <depend>rclcpp</depend>
   <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend> 
   <depend>Boost</depend>
+  <depend>service_interfaces</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
