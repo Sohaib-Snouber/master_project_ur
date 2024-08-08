@@ -18,6 +18,7 @@ public:
     void move_and_wait_for_pos(int position, int speed = 255, int force = 255);
     void auto_calibrate_gripper(bool log = true);
     void disconnect();
+    int get_current_position();
 
 private:
     std::string address_;

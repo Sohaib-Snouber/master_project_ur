@@ -100,6 +100,11 @@ void RobotiqCModelURCap::connect()
     socket_.set_option(asio::ip::tcp::no_delay(true));
 }
 
+int RobotiqCModelURCap::get_current_position()
+{
+    return _get_var(POS);
+}
+
 bool RobotiqCModelURCap::_set_vars(const std::map<std::string, int>& var_dict)
 {
     std::lock_guard<std::mutex> lock(command_mutex_);

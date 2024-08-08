@@ -1,0 +1,5 @@
+string command     # Command like 'activate', 'open', 'close', 'move:<position>'
+int32 position     # Position value (if applicable)
+---
+bool success       # Indicate if the task was successfully completed
+string message     # Feedback message

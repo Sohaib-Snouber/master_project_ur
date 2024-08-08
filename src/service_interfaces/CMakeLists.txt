@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(robotiq_gripper_control)
+project(service_interfaces)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -7,19 +7,21 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+# uncomment the following section in order to fill in
+# further dependencies manually.
+# find_package(<dependency> REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
 find_package(std_msgs REQUIRED)
-find_package(sensor_msgs REQUIRED)
-find_package(Boost REQUIRED)
-find_package(service_interfaces REQUIRED)
 
-add_executable(robotiq_gripper_control src/robotiq_gripper_control.cpp src/RobotiqCModelURCap.cpp)
+set(service_files
+ "srv/GripperControl.srv"
+)
 
-ament_target_dependencies(robotiq_gripper_control rclcpp sensor_msgs std_msgs Boost service_interfaces)
-
-install(TARGETS
-robotiq_gripper_control
-  DESTINATION lib/${PROJECT_NAME})
+rosidl_generate_interfaces(${PROJECT_NAME}
+  ${service_files}
+  DEPENDENCIES std_msgs
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
