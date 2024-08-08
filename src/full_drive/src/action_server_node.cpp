@@ -389,6 +389,9 @@ private:
 
     bool moveToPose(const geometry_msgs::msg::PoseStamped& target_pose, bool constrain = false, double motion_speed = 0.1) 
     {
+        move_group_->setStartStateToCurrentState(); // Ensure the start state is accurate
+        move_group_->setPlanningTime(10.0); 
+        move_group_->setNumPlanningAttempts(10);
         moveit_msgs::msg::Constraints path_constraints;
         if (constrain) {
             moveit_msgs::msg::JointConstraint shoulder_constraint;
@@ -411,7 +414,7 @@ private:
         
         move_group_->setMaxVelocityScalingFactor(motion_speed);
 
-        move_group_->setPlannerId("RRTConnectKConfigDefault");
+        move_group_->setPlannerId("PTP"); // RRTConnectKConfigDefault = ompl, PTP = pilz_industrial_motion_planner
 
         move_group_->setPoseTarget(target_pose);
 
@@ -419,13 +422,28 @@ private:
         moveit::planning_interface::MoveGroupInterface::Plan my_plan;
         bool success = (move_group_->plan(my_plan) == moveit::core::MoveItErrorCode::SUCCESS);
 
-        if (success){
-            auto result = move_group_->execute(my_plan);
-            if (result == moveit::core::MoveItErrorCode::SUCCESS){
-                RCLCPP_INFO(this->get_logger(), "Motion executed successfully to target pose.");
-            }
-            else{
-                RCLCPP_ERROR(this->get_logger(), "Motion execution failed to target pose.");
+        if (success) {
+            // Convert moveit_msgs::msg::RobotTrajectory to robot_trajectory::RobotTrajectory
+            robot_trajectory::RobotTrajectory robot_trajectory(move_group_->getRobotModel(), move_group_->getName());
+            robot_trajectory.setRobotTrajectoryMsg(*move_group_->getCurrentState(), my_plan.trajectory);
+
+            // Check if the path is valid before execution
+            const moveit::core::RobotState start_state(*move_group_->getCurrentState());
+            const std::string group_name = move_group_->getName();
+            
+            bool is_valid = planning_scene_->isPathValid(robot_trajectory, group_name, true);
+
+            if (is_valid) {
+                // Execute the plan
+                auto result = move_group_->execute(my_plan);
+                if (result == moveit::core::MoveItErrorCode::SUCCESS) {
+                    RCLCPP_INFO(this->get_logger(), "Motion executed successfully to target pose.");
+                } else {
+                    RCLCPP_ERROR(this->get_logger(), "Motion execution failed to target pose.");
+                    success = false;
+                }
+            } else {
+                RCLCPP_ERROR(this->get_logger(), "Planned path is no longer valid!");
                 success = false;
             }
         } else{
@@ -440,6 +458,9 @@ private:
     }
 
     bool moveLinear(const geometry_msgs::msg::PoseStamped& target_pose){
+        move_group_->setStartStateToCurrentState(); // Ensure the start state is accurate
+        move_group_->setPlanningTime(10.0);
+        move_group_->setNumPlanningAttempts(10);
         // Define waypoints
         std::vector<geometry_msgs::msg::Pose> waypoints;
 

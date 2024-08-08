@@ -19,7 +19,7 @@ def generate_launch_description():
         .robot_description(file_path=robot_description_path)
         .robot_description_semantic(file_path=srdf_path)
         .trajectory_execution(file_path=controllers_path)
-        .planning_pipelines(pipelines=["ompl"])
+        .planning_pipelines(pipelines=["ompl","pilz_industrial_motion_planner"])
         .to_moveit_configs()
     )
 

@@ -17,6 +17,7 @@ find_package(moveit_core REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
+find_package(service_interfaces REQUIRED)
 
 include_directories(
   include
@@ -38,6 +39,7 @@ ament_target_dependencies(usage_node
  action_interfaces
  tf2_ros
  tf2_geometry_msgs
+ service_interfaces
 )
 
 install(TARGETS

@@ -346,7 +346,7 @@ def launch_setup(context, *args, **kwargs):
         initial_joint_controller_spawner_started,
     ] + controller_spawners
 
-    nodes_to_start.append(static_gripper_publisher_node)
+    #nodes_to_start.append(static_gripper_publisher_node)
 
     return nodes_to_start
 

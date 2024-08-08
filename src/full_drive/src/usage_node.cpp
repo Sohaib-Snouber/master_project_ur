@@ -7,6 +7,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <functional>
 #include <Eigen/Dense>
+#include "service_interfaces/srv/gripper_control.hpp"
 
 
 class ClientNode : public rclcpp::Node {
@@ -14,12 +15,20 @@ public:
     ClientNode(const rclcpp::NodeOptions & options = rclcpp::NodeOptions())
         : Node("client_node", options), client_actions_(std::make_shared<ClientActions>()) {
 
+        // Create a service client to control the gripper
+        gripper_client_ = this->create_client<service_interfaces::srv::GripperControl>("gripper_control");
+
+        // Wait for the service to be available
+        while (!gripper_client_->wait_for_service(std::chrono::seconds(1))) {
+            RCLCPP_WARN(this->get_logger(), "Waiting for gripper control service to be available...");
+        }
         // Start executeActions
         executeActions();
         }
 
 private:
     std::shared_ptr<ClientActions> client_actions_;
+    rclcpp::Client<service_interfaces::srv::GripperControl>::SharedPtr gripper_client_;
     const int max_attempts = 10;
 
     bool tryAction(std::function<bool()> action, const std::string& action_name) {
@@ -31,6 +40,34 @@ private:
         }
         RCLCPP_ERROR(this->get_logger(), "All %d attempts for %s failed.", max_attempts, action_name.c_str());
         return false;
+    }
+
+    bool callGripperService(const std::string& command, int position = 0) {
+        auto request = std::make_shared<service_interfaces::srv::GripperControl::Request>();
+        request->command = command;
+        request->position = position;
+
+        auto future = gripper_client_->async_send_request(request);
+
+        // Wait until the service call is complete
+        auto result = rclcpp::spin_until_future_complete(this->get_node_base_interface(), future);
+
+        if (result == rclcpp::FutureReturnCode::SUCCESS) {
+            auto response = future.get();
+            if (response->success) {
+                RCLCPP_INFO(this->get_logger(), "Gripper command '%s' executed successfully", command.c_str());
+                return true; // Service call was successful
+            } else {
+                RCLCPP_ERROR(this->get_logger(), "Gripper command '%s' failed: %s", command.c_str(), response->message.c_str());
+                return false; // Service call failed
+            }
+        } else if (result == rclcpp::FutureReturnCode::TIMEOUT) {
+            RCLCPP_ERROR(this->get_logger(), "Service call to gripper timed out");
+            return false; // Service call timed out
+        } else {
+            RCLCPP_ERROR(this->get_logger(), "Service call to gripper failed");
+            return false; // Service call failed
+        }
     }
 
     void executeActions() {
@@ -45,7 +82,7 @@ private:
         double robot_base_height = 0.015; // 1,5 cm is the hieght of the base of the real robot, that it is not configured in rviz 
         double dif_btw_tip_tcp = 0.24; // 22cm the distacne between the tip of the gripper and the TCP point of the wrist3_link (the planning target will get to that link point)
         double dist_btw_objects = 0.005; //0.5 cm distance between the objects, that will be grasped
-        double dist_btw_targets = 0.012; // distannce between vertical targets 
+        double dist_btw_targets = 0.002; // distannce between vertical targets 
         double gripper_finger_width = 0.005; // the gripper finger width is 0.5 cm
         double num_objects = 12; // this will make like counter of the number of objects that have been grasped
         double pallet_width = 0.06;  // 6cm the width of tha pallet, that the objects are going to be placed on.
@@ -73,12 +110,6 @@ private:
         //  0.5  |    4    cm
         //  0.6  |    2    cm
         //  0.7  |    0    cm   (full close)
-
-        for (int i = 0; i < num_objects; ++i) {
-            std::string object_name = "cylinder_object" + std::to_string(i);
-            RCLCPP_INFO(this->get_logger(), "Adding the %s", object_name.c_str());
-            
-        }
         
         // Create object poses, the output will be like: object_poses = [0,1,2,3,4,5,6,7,8,9,10,11,12], where 0 is the objects poses, and the other ones are the actual poses for every object with its number respectively
         std::vector<geometry_msgs::msg::PoseStamped> object_poses;
@@ -100,9 +131,9 @@ private:
         // Create target poses
         std::vector<geometry_msgs::msg::PoseStamped> target_poses;
         for (int i = 0; i <= 6; ++i) {
-            double x_position = x_targets1 + pallet_height - (i / 2 + 1) * (piece_diameter / 2.0) - (i / 2) * (piece_diameter / 2.0) - (i / 2) * dist_btw_targets; // examples on i/2 > 1/2 = 0, 3/2 = 1
+            double x_position = x_targets1 + pallet_height - (i / 2 + 1) * (piece_diameter / 2.0) - (i / 2) * (piece_diameter / 2.0) - (i / 2) * dist_btw_targets- (i / 2) * gripper_finger_width; // examples on i/2 > 1/2 = 0, 3/2 = 1
             double y_position = y_targets1 - (i % 2 + 1) * (piece_diameter / 2.0) - (i % 2) * (piece_diameter / 2.0) - (i % 2) * dist_btw_objects;  //examples on i%2 > 1%2 = 1, 2%2 = 0, 0%2 = 0
-            geometry_msgs::msg::PoseStamped pose = createTargetPose(x_position, y_position, pallet_offset + dif_btw_tip_tcp, q1);
+            geometry_msgs::msg::PoseStamped pose = createTargetPose(x_position, y_position, pallet_offset + piece_height + dif_btw_tip_tcp, q1);
             target_poses.push_back(pose);
         }
 
@@ -139,49 +170,55 @@ private:
         //std::this_thread::sleep_for(std::chrono::seconds(1)); */
         
         for (int i = 0; i < 6; ++i) {
+            if (!callGripperService("set", 120)) {
+                RCLCPP_ERROR(this->get_logger(), "Failed to close gripper. Aborting task sequence.");
+                return; // Stop further execution if gripper command failed
+            }
             RCLCPP_INFO(this->get_logger(), "moving robot to objects position with shoulder constrain");
-            if (!tryAction([&]() { return moveTo(object_mid_poses[i], add_constrain = false, motion_speed = 0.1); }, "moveTo")) return;
-            //std::this_thread::sleep_for(std::chrono::seconds(1));
+            if (!tryAction([&]() { return moveTo(object_mid_poses[i], add_constrain = true, motion_speed = 0.1); }, "moveTo")) return;
 
             RCLCPP_INFO(this->get_logger(), "moving to objects linearly");
             if (!tryAction([&]() { return moveLinear(object_mid_poses[i]); }, "moveLinear")) return;
-            //std::this_thread::sleep_for(std::chrono::seconds(1));
 
             RCLCPP_INFO(this->get_logger(), "allowing collisions with the cylinder object");
             std::string object_name = "cylinder_object" + std::to_string(i+1);
             if (!tryAction([&]() { return allowCollision("ur5e_tool0", object_name); }, "allowCollision(ur5e_tool0, " + object_name + ")")) return;
             if (!tryAction([&]() { return allowCollision("surface", object_name); }, "allowCollision(surface, " + object_name + ")")) return;
-            //std::this_thread::sleep_for(std::chrono::seconds(1));
 
             RCLCPP_INFO(this->get_logger(), "moving to object linearly");
             if (!tryAction([&]() { return moveLinear(object_poses[i]); }, "moveLinear")) return;
-            //std::this_thread::sleep_for(std::chrono::seconds(1));
 
             RCLCPP_INFO(this->get_logger(), "attaching the cylinder object to the gripper");
             if (!tryAction([&]() { return attachObject(object_name); }, "attachObject(" + object_name + ")")) return;
+            
+            if (!callGripperService("move_and_wait_for_pos", 220)) {
+                RCLCPP_ERROR(this->get_logger(), "Failed to close gripper. Aborting task sequence.");
+                return; // Stop further execution if gripper command failed
+            }            //std::this_thread::sleep_for(std::chrono::seconds(1));
+
 
             RCLCPP_INFO(this->get_logger(), "back to above object linearly");
             if (!tryAction([&]() { return moveLinear(object_mid_poses[i]); }, "moveLinear")) return;
-            //std::this_thread::sleep_for(std::chrono::seconds(1));
 
             RCLCPP_INFO(this->get_logger(), "moving robot to targets position with shoulder constrain");
-            if (!tryAction([&]() { return moveTo(target_mid_poses[i], add_constrain = false, motion_speed = 0.1); }, "moveTo")) return;
-            //std::this_thread::sleep_for(std::chrono::seconds(1));
+            if (!tryAction([&]() { return moveTo(target_mid_poses[i], add_constrain = true, motion_speed = 0.1); }, "moveTo")) return;
 
             RCLCPP_INFO(this->get_logger(), "moving to targets linearly");
             if (!tryAction([&]() { return moveLinear(target_mid_poses[i]); }, "moveLinear")) return;
-            //std::this_thread::sleep_for(std::chrono::seconds(1));
 
             RCLCPP_INFO(this->get_logger(), "moving to target linearly");
             if (!tryAction([&]() { return moveLinear(target_poses[i]); }, "moveLinear")) return;
-            //std::this_thread::sleep_for(std::chrono::seconds(1));
+
+            if (!callGripperService("move_and_wait_for_pos", 120)) {
+                RCLCPP_ERROR(this->get_logger(), "Failed to close gripper. Aborting task sequence.");
+                return; // Stop further execution if gripper command failed
+            }
 
             RCLCPP_INFO(this->get_logger(), "detaching the cylinder object from the gripper");
             if (!tryAction([&]() { return detachObject(object_name); }, "detachObject(" + object_name + ")")) return;
 
             RCLCPP_INFO(this->get_logger(), "finished target");
             if (!tryAction([&]() { return moveLinear(target_mid_poses[i]); }, "moveLinear")) return;
-            //std::this_thread::sleep_for(std::chrono::seconds(1));
 
         }
 
