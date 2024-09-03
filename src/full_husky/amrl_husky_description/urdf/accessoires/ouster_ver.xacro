@@ -1,0 +1,91 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+
+<xacro:property name="sensor_name" value="os_sensor_ver"/>
+
+  <!-- Ouster to base_link -->
+  <joint name="${sensor_name}" type="fixed">
+    <origin xyz="0.479 0 0.1875" rpy="1.57 3.14 1.57 " /> 
+    <parent link="base_link" />
+    <child link="${sensor_name}" />
+  </joint>
+  <link name="${sensor_name}">
+    <visual>
+      <origin xyz="0 0 0.04" rpy="0 0 1.57" />
+      <geometry>
+        <mesh filename="package://amrl_husky_description/stl/os1_64.dae" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.04" rpy="0 0 1.57" />
+      <geometry>
+        <mesh filename="package://amrl_husky_description/stl/os1_64.stl" scale="1 1 1"/>
+      </geometry>
+    </collision>
+
+    <!-- Bodenplatte to Ouster -->
+    <visual>
+      <origin xyz="0 0 0.001" rpy="1.57 3.14 0" />
+      <geometry>
+        <mesh filename="package://amrl_husky_description/stl/Boden.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+      <material name="top_plate_silver">
+        <color rgba="1 1 1 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.001" rpy="1.57 3.14 0" />
+      <geometry>
+        <mesh filename="package://amrl_husky_description/stl/Boden.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+
+    <!-- Dachplatte to Ouster -->
+    <visual>
+      <origin xyz="0 0 0.095" rpy="-1.57 3.14 0" />
+      <geometry>
+        <mesh filename="package://amrl_husky_description/stl/Deckel.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+      <material name="top_plate_silver">
+        <color rgba="1 1 1 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.095" rpy="-1.57 3.14 0" />
+      <geometry>
+        <mesh filename="package://amrl_husky_description/stl/Deckel.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+
+    <!-- Zylinder-Links -->
+    <xacro:macro name="zylinder_link" params="link_name x y z">
+      <visual>
+        <origin xyz="${x} ${y} ${z}" rpy="0 0 0" />
+        <geometry>
+          <mesh filename="package://amrl_husky_description/stl/Zylinder.stl" scale="0.01 0.01 0.01"/>
+        </geometry>
+        <material name="top_plate_silver">
+          <color rgba="1 1 1 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="${x} ${y} ${z}" rpy="0 0 0" />
+      <geometry>
+          <mesh filename="package://amrl_husky_description/stl/Zylinder.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+    </xacro:macro>
+
+    <!-- Manuelle Instanziierung mehrerer Zylinder-Links -->
+    <xacro:zylinder_link link_name="zylinder_link_oben_vl" x="0.04"  y="0.04"  z="-0.01"/>
+    <xacro:zylinder_link link_name="zylinder_link_oben_vr" x="0.04"  y="-0.04" z="-0.01"/>
+    <xacro:zylinder_link link_name="zylinder_link_oben_hl" x="-0.04" y="0.04"  z="-0.01"/>
+    <xacro:zylinder_link link_name="zylinder_link_oben_hr" x="-0.04" y="-0.04" z="-0.01"/>
+  </link>
+
+  <gazebo reference="${sensor_name}_link">
+  </gazebo>
+
+</robot>
+
+

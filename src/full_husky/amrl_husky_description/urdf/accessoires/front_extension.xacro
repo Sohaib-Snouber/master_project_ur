@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+
+  <!-- Xsens Sensor to base_link -->
+  <joint name="front_extension_joint" type="fixed">
+    <origin xyz="0.235 0.0325 0.245" rpy="0 3.14 -1.57" /> 
+    <parent link="base_link" />
+    <child link="front_extension_link" />
+  </joint>
+  <link name="front_extension_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" /> 
+      <geometry>
+          <mesh filename="package://amrl_husky_description/stl/LIDAR_Winkel.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+      <material name="husky_silver">
+        <color rgba="1 1 1 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" /> 
+      <geometry>
+          <mesh filename="package://amrl_husky_description/stl/LIDAR_Winkel.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+  <gazebo reference="front_extension_link">
+  </gazebo>
+
+</robot>

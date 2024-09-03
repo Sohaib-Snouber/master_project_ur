@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<robot name="accessories" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:include filename="$(find amrl_husky_description)/urdf/accessoires/ouster_hor.xacro" />
+  <xacro:include filename="$(find amrl_husky_description)/urdf/accessoires/ouster_ver.xacro" />
+  <xacro:include filename="$(find amrl_husky_description)/urdf/accessoires/xsens.xacro" />
+  <xacro:include filename="$(find amrl_husky_description)/urdf/accessoires/top_frame.xacro" />
+  <xacro:include filename="$(find amrl_husky_description)/urdf/accessoires/emlid_reach_rs2.xacro" />
+  <xacro:include filename="$(find amrl_husky_description)/urdf/accessoires/front_extension.xacro" />
+
+</robot>

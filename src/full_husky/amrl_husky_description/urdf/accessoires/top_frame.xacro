@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+
+  <!-- top_frame to base_link -->
+  <joint name="top_frame_joint" type="fixed">
+    <origin xyz="-0.29 -0.3 0.254" rpy="1.57 0 3.14" /> 
+    <parent link="base_link" />
+    <child link="top_frame_link" />
+  </joint>
+  
+  <link name="top_frame_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://amrl_husky_description/stl/husky_aufbau.stl" scale="1 1 1"/>
+      </geometry>
+      <material name="top_plate_silver">
+        <color rgba="1 1 1 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://amrl_husky_description/stl/husky_aufbau.stl" scale="1 1 1"/>
+      </geometry>
+    </collision>
+
+    <!-- Macro for item_profil_link -->
+    <xacro:macro name="item_profil_link" params="name x y z r g b">
+      <visual>
+        <origin xyz="${x} ${y} ${z}" rpy="0 0 0" />
+        <geometry>
+          <mesh filename="package://amrl_husky_description/stl/item_profil.stl" scale="1 1 1"/>
+        </geometry>
+        <material name="item_profil_color_${name}">
+          <color rgba="${r} ${g} ${b} 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="${x} ${y} ${z}" rpy="0 0 0" />
+      <geometry>
+          <mesh filename="package://amrl_husky_description/stl/item_profil.stl" scale="1 1 1"/>
+      </geometry>
+    </collision>
+    </xacro:macro>
+
+    <!-- Manuelle Instanziierung mehrerer item_profil_links -->
+    <xacro:item_profil_link name="item_profil_vl" x="-0.655" y="0.008" z="0.164" r="0" g="0" b="0"/>
+    <xacro:item_profil_link name="item_profil_vr" x="-0.655" y="0.008" z="0.387" r="0" g="0" b="0"/>
+    <xacro:item_profil_link name="item_profil_ml" x="-0.455" y="0.008" z="0.164" r="0" g="0" b="0"/>
+    <xacro:item_profil_link name="item_profil_mr" x="-0.455" y="0.008" z="0.387" r="0" g="0" b="0"/>
+    <xacro:item_profil_link name="item_profil_l"  x="-0.525" y="0.008" z="0.529" r="1" g="1" b="1"/>
+    <xacro:item_profil_link name="item_profil_r"  x="-0.525" y="0.008" z="0.021" r="1" g="1" b="1"/>
+  </link>
+</robot>
+

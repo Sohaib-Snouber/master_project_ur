@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+
+  <!-- Xsens Sensor to base_link -->
+  <joint name="xsens_joint" type="fixed">
+    <origin xyz="0.28 0 0.3" rpy="0 0 3.1415926" /> 
+    <parent link="base_link" />
+    <child link="xsens_link" />
+  </joint>
+  <link name="xsens_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="-1.5708 0 1.5708" /> 
+      <geometry>
+          <mesh filename="package://amrl_husky_description/stl/MTi_6xx.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="xsens_orange">
+        <color rgba="0.92 0.45 0.02 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="-1.5708 0 1.5708" /> 
+      <geometry>
+          <mesh filename="package://amrl_husky_description/stl/MTi_6xx.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+  <gazebo reference="xsens_link">
+  </gazebo>
+
+</robot>

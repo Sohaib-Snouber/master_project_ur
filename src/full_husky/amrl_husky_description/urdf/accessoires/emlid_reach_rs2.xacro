@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+
+  <!-- Ouster to base_link -->
+  <joint name="rtk_sensor" type="fixed">
+    <origin xyz="0.36 0 0.67" rpy="1.57 0 0" /> 
+    <parent link="base_link" />
+    <child link="rtk_sensor_link" />
+  </joint>
+  <link name="rtk_sensor_link">
+  
+    <visual>
+    <origin xyz="0 0 0" rpy="0 -1.57 0" />
+      <geometry>
+          <mesh filename="package://amrl_husky_description/stl/emlid_reach_rs2.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+      <material name="top_plate_grey">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+    <origin xyz="0 0 0" rpy="0 -1.57 0" />
+      <geometry>
+         <mesh filename="package://amrl_husky_description/stl/emlid_reach_rs2.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+        
+    <!-- Pillar to Ouster -->
+    <visual>
+    <origin xyz="0 -0.16 0" rpy="0 0 0" />
+      <geometry>
+          <mesh filename="package://amrl_husky_description/stl/GNSS_Stange.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+      <material name="top_plate_silver">
+        <color rgba="1 1 1 1.0"/>
+      </material>
+    </visual>
+    <collision>
+    <origin xyz="0 -0.16 0" rpy="0 0 0" />
+      <geometry>
+          <mesh filename="package://amrl_husky_description/stl/GNSS_Stange.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+  <gazebo reference="rtk_sensor_link">
+  </gazebo>
+
+</robot>
