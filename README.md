@@ -1,6 +1,6 @@
-# Master Project UR
+# Master Project UR5E-Husky Integration
 
-This workspace contains the ROS2 package for testing the ROS2 Universal Robots Driver. It includes the necessary launch files, and example nodes to control the robot.
+This workspace contains the ROS2 package for testing the ROS2 Universal Robots Driver. It is also integrating the UR5E robotic arm, 2F-140 gripper, and Husky mobile robot using the ROS2 framework.
 
 ## Table of Contents
 
@@ -23,6 +23,8 @@ This project demonstrates how to use the ROS2 Universal Robot Driver to control 
 - Ubuntu 22.04
 - ROS2 Iron
 - A Universal Robots e-Series robot
+- Universal Robots ROS2 Driver
+- Robotiq URCap for the 2F-140 gripper
 
 ### Install the Universal Robots Driver and ros2controlcli
 
@@ -38,13 +40,6 @@ sudo apt-get install ros-iron-ros2controlcli
 clone the following workspace
 ```bash
 git clone https://github.com/Sohaib-Snouber/master_project_ur.git
-```
-
-### Clone the ROS2 Universal Robots Driver
-
-```bash
-cd master_project_ur/src
-git clone -b iron https://github.com/UniversalRobots/Universal_Robots_ROS2_Driver.git
 ```
 
 ### Build the Package
@@ -64,22 +59,50 @@ source install/setup.bash
 
 ## Usage
 
-### Running the Example MoveIt Node
+1. **Start the Universal Robots Driver:**
+   ```bash
+   ros2 launch full_husky_control rst.launch.py
+   ```
+   This will start the Universal Robots driver necessary for communication with the UR5E robotic arm.
 
-1. **Launch the Driver**:
-   Change the parameter according to your robot
+2. **Run RQT:**
+   - Open RQT to run the necessary services for starting the robot without using the teach pendant(your teach pendant should be closed last time on remote mode).
+   - Use the following service calls in RQT to make the robot ready:
+     - Call `/dashboard_client/power_on` (Service: `std_srvs/srv/Trigger`)
+     - Call `/dashboard_client/brake_release` (Service: `std_srvs/srv/Trigger`)
+     - Call `/dashboard_client/play` (Service: `ur_dashboard_msgs/srv/Load`) to load the program `master-projekt.urp`. (this will include the external control node, with gripper activation node).
+
+3. **Start Gripper Control Node:**
    ```bash
-   ros2 launch ur_robot_driver ur_control.launch.py ur_type:=ur5e robot_ip:=10.130.1.100 launch_rviz:=true
+   ros2 run robotiq_gripper_control robotiq_gripper_control
    ```
-2. **Launch the MoveIt**:
-   Change the parameter according to your robot
+   This will start the Gripper driver that contain the gripper services server.
+
+4. **Launch MoveIt Configuration:**
    ```bash
-   ros2 launch ur_moveit_config ur_moveit.launch.py ur_type:=ur5e launch_rviz:=true^C
+   ros2 launch full_husky_moveit_config move_group.launch.py
    ```
-3. **Launch the my_robot_moveit**:
+   This will start the move_group node, to allow planning and execution on MoveIt.
+
+5. **Launch RViz for Visualization:**
    ```bash
-   ros2 launch my_robot_moveit moveit_node
+   ros2 launch full_husky_moveit_config moveit_rviz.launch.py
    ```
+   This will start the RViz including the full Husky robot, to allow planning and execution using the interactive marker (just for testing the arm).
+
+Now the system is ready to go with custom nodes to implment any task the robot arm and gripper can do, the next two nodes are my custom developed nodes to test the system.
+
+6. **Start the Full Driver:**
+   ```bash
+   ros2 launch full_driver full_robot_driver.launch.py
+   ```
+   This is the actions server to implement all posible action by the arm, moving to target with high speed, low spped, linearly, with constrain, adding objects to planning scene, deleting objects from planning scene, allowing or disallowing collision between links or objects.
+
+7. **Launch the Usage Node:**
+   ```bash
+   ros2 launch full_driver usage.launch.py
+   ```
+   This will execute some actions requested in the `usage` node, that will call actions from the full_robot_driver node, to implement robot arm action, and it will call the robotiq_gripper_control node to exceute some gripper services.
 
 
 ## License
