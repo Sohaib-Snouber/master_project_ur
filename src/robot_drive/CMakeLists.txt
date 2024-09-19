@@ -11,7 +11,6 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(action_interfaces REQUIRED)
-find_package(moveit_task_constructor_core REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 find_package(moveit_core REQUIRED)
 find_package(tf2 REQUIRED)
@@ -27,7 +26,6 @@ ament_target_dependencies(action_server_node
   rclcpp 
   rclcpp_action  
   moveit_core 
-  moveit_task_constructor_core 
   moveit_ros_planning_interface
   action_interfaces
 )
