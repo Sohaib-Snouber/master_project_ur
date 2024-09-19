@@ -61,7 +61,7 @@ source install/setup.bash
 
 1. **Start the Universal Robots Driver:**
    ```bash
-   ros2 launch full_husky_control rst.launch.py
+   ros2 launch full_husky_control test.launch.py
    ```
    This will start the Universal Robots driver necessary for communication with the UR5E robotic arm.
 
